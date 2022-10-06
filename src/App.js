@@ -1,25 +1,49 @@
-import logo from './logo.svg';
-import './App.css';
+import axios from 'axios'
+import React, { useEffect, useState } from 'react'
+import AddEvent from './components/AddEvent/AddEvent'
+import EventList from './components/EventList/EventList'
+import UpdateEvent from './components/UpdateEvent/UpdateEvent'
 
-function App() {
+const App = () => {
+  const [eventList,setEventList] = useState([])
+  const [eventToUpdate,setEventToUpdate] = useState({})
+  const [showPopup,setShowPopup] = useState(false)
+
+  useEffect(()=>{
+    axios.get(`https://event-list-naveen.herokuapp.com/CreateEvent`).then(res=>{
+      setEventList(res.data)
+    }).catch(err=>console.log(err))
+  },[])
+
+  const addEvent = (newEvent) =>{
+      setEventList([...eventList,newEvent])
+  }
+
+  const updateEvent = (UpEvent) =>{
+    const newList = [...eventList]
+    newList.forEach((event)=>{
+      if(event._id === UpEvent._id){
+        event.eventName = UpEvent.eventName
+        event.location = UpEvent.location
+        event.startDate = UpEvent.startDate
+        event.endDate = UpEvent.endDate
+        event.buffer = UpEvent.buffer
+      }
+    })
+    setEventList(newList)
+  }
+
+const removeEvent = (remEvent) =>{
+  const newList = eventList.filter(event=> !(event._id===remEvent._id))
+  setEventList(newList)
+}
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+    <div>
+      <AddEvent addEvent={addEvent}/>
+      <EventList eventList={eventList} removeEvent={removeEvent} setEventToUpdate={setEventToUpdate}  showPopup={()=>setShowPopup(!showPopup)}/>
+      {showPopup && <UpdateEvent eventToUpdate={eventToUpdate} updateEvent={updateEvent} removePopup={()=>setShowPopup(!showPopup)}/>}
     </div>
-  );
+  )
 }
 
-export default App;
+export default App
